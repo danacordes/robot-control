@@ -74,7 +74,7 @@ class Motor:
 			if self.mode == self.STEPS:
 				if self.steps_left > 0:
 					self.steps_left -= 1
-				else:
+				if self.steps_left <= 0:
 					self.direction = 0
 
 			self.step()		
@@ -86,7 +86,7 @@ class Motor:
 		
 
 motors = [
-	Motor('Left Wheel', 7, 11),
+	Motor('Left Wheel', 7, 11), #name, step pin, dir_pin
 	Motor('Right Wheel', 13, 15)
 ]
 	
@@ -120,20 +120,6 @@ try:
 	run_game = True
 
 	while run_game:
-		#input
-		if motors[0].steps_left == 0:
-			GPIO.output(reset_pin, GPIO.LOW)
-			try:
-				run_game = False
-				degrees = int(raw_input('Number of degrees: '))
-				speed = int(raw_input('Speed [1-100]: '))
-				motors[0].rotate_degrees(degrees, speed)
-				motors[1].rotate_degrees(degrees, speed)
-		
-				run_game = True 
-			except ValueError:
-				print "Not a number"
-
 		#output
 		tick = time.clock()
 		motors_moving = False 
@@ -143,13 +129,27 @@ try:
 				True = True
 			else:
 				#print "steps left: ", motor.steps_left 
-				if (motor.steps_left > 0):
-					if (not motors_moving):
-						GPIO.output(reset_pin, GPIO.HIGH)
-						motors_moving = True 
-					motor.run_tick(tick)
-					#time.sleep(0.001)
+				if (not motors_moving):
+					GPIO.output(reset_pin, GPIO.HIGH)
+					motors_moving = True 
+				motor.run_tick(tick)
+				#time.sleep(0.001)
 		if (not motors_moving):
 			GPIO.output(reset_pin, GPIO.LOW)
+		#input
+		if (not motors_moving) :
+			GPIO.output(reset_pin, GPIO.LOW)
+			try:
+				run_game = False
+				degrees = int(raw_input('Number of degrees: '))
+				speed = int(raw_input('Speed [1-100]: '))
+				motors[0].rotate_degrees(degrees, -speed)
+				motors[1].rotate_degrees(degrees, speed)
+		
+				run_game = True 
+			except ValueError:
+				print "Not a number"
+
+
 finally:
 	GPIO.cleanup()
