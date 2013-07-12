@@ -1,0 +1,79 @@
+Comms Protocol
+
+This communication protocol needs to do a few things.  The primary goal of the 
+app is to send control commands to the robot, and serve as a UI for display of 
+status information from sensor and control systems.  The server must read in 
+commands, execute them, and relay status information out form the bot to the
+App.  I'll break this protocol down into CONTROL and INFO sections.  CONTROL
+will consist of commands to be executed by the robot.  INFO will consist of ack
+and status/sensor update info from the bot to the App.
+
+CONTROL
+****************************
+All control commands should start with the letter 'C'.
+
+Rotate Degrees
+==================
+CD<L|R|B><degrees>,<speed>
+===================
+The wheels can be rotated a specific number of degrees.  L, R, B indicate which 
+wheels should be affected with B indicating both.  Degrees can be any 
+positive value.  Speed can be -100 through 100, where negative values indicate
+a reverse direction
+
+Go at Speed
+==================
+CG<L|R|B><speed>
+===================
+The wheels will move at a specified rate.  L, R and B indicate which wheels
+should be affected with B indicating both.  Speed can be -100 through 100 where
+nevative values indicated a reverse direction
+
+Disable Movement
+==================
+C-
+===================
+This will power down the motor controllers and set the robot so it cannot move
+
+Enable Movement
+==================
+C+
+===================
+This will power up the motor controllers and set the robot so it can move
+
+Speak
+==================
+CS<index>
+===================
+The robot will have the ability to play sound samples.  Index will indicate which
+one to play
+
+Function
+==================
+CF<index>
+===================
+The robot will have movement macros stored which it can replay on command.  Index
+indicates which one to play
+
+Sensor Value
+==================
+IN<index>
+===================
+The robot will be equipped with sensors.  In order to retrieve sensor data, you can 
+send the CONTROL command and the index of the sensor.   
+
+INFORMATION
+****************************
+All control commands should start with the letter 'I'.  The CONTROL commands will be
+echoed back from the robot to indicate acknowledgement  of the control command. 
+The will contain the same information set, except will be prefaced with an I instead
+of a C.
+
+Sensor Value
+==================
+IN<index>,<value>
+===================
+The robot will be equipped with sensors.  The numerical values will be indicate the
+index value of the sensor.  The Value will contain the return output of the sensor.
+ 
+
