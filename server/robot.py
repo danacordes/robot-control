@@ -2,6 +2,10 @@
 
 import RPi.GPIO as GPIO
 import time
+import sys
+import select
+import tty
+import termios
 
 step_angle = 1.8
 micro_steps = 1
@@ -115,8 +119,13 @@ delay = 0.00001
 
 #rotate_degrees(360,10000)
 #rotate_degrees(180,5000)
+def isData():
+        return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
+ibuffer = '';
+old_settings = termios.tcgetattr(sys.stdin)
 try:
+	tty.setcbreak(sys.stdin.fileno())
 	run_game = True
 
 	while run_game:
@@ -137,7 +146,24 @@ try:
 		if (not motors_moving):
 			GPIO.output(reset_pin, GPIO.LOW)
 		#input
-		if (not motors_moving) :
+		execute = False
+		if isData():
+			c = sys.stdin.read(1)
+			if c== '\x1b': #escape
+				break
+			elif c== "\n":
+				execute = True
+			ibuffer += c
+		if (execute) :
+			inP = ibuffer.split();
+			degrees = int(inP[0])
+			speed = int(inP[1])
+			print degrees, " - ", speed
+			motors[0].rotate_degrees(degrees, -speed)
+			motors[1].rotate_degrees(degrees,  speed)
+
+			ibuffer = ''
+		if (not motors_moving and False) :
 			GPIO.output(reset_pin, GPIO.LOW)
 			try:
 				run_game = False
@@ -152,4 +178,6 @@ try:
 
 
 finally:
+	GPIO.output(reset_pin, GPIO.LOW)
 	GPIO.cleanup()
+	termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
