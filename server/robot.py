@@ -88,11 +88,14 @@ class Motor:
 			else:
 				self.next_step_tick += self.speed
 		
-
+LEFT_MOTOR = 0
+RIGHT_MOTOR = 1
 motors = [
 	Motor('Left Wheel', 7, 11), #name, step pin, dir_pin
 	Motor('Right Wheel', 13, 15)
 ]
+#motors[LEFT_MOTOR] = Motor('Left Wheel', 7, 11)#name, step pin, dir_pin
+#motors[RIGHT_MOTOR] =  Motor('Right Wheel', 13, 15)
 	
 
 # to use Raspberry Pi board pin numbers
@@ -122,6 +125,46 @@ delay = 0.00001
 def isData():
         return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
+def control(command, args):
+	print "command:",command," args:",arguments
+	obuffer = 'I'
+	if command == 'D':
+		try:
+			wheel = args[0]
+			inP = args[1:].split(',');
+			degrees = int(inP[0])
+			speed = int(inP[1])
+			print "spinning ", wheel, " at speed ", speed, " for ", degrees, " degrees"
+
+			if wheel == 'L':
+				motors[LEFT_MOTOR].rotate_degrees(degrees, speed)
+			elif wheel == 'R':
+				motors[RIGHT_MOTOR].rotate_degrees(degrees, -speed)
+			elif wheel == 'B':
+				motors[LEFT_MOTOR].rotate_degrees(degrees, speed)
+				motors[RIGHT_MOTOR].rotate_degrees(degrees, -speed)
+			obuffer += str(wheel) + str(degrees) + ',' + str(speed)
+		except:
+			obuffer = "E! Unknown D Command: ",args
+			
+	elif command == 'G':
+		obuffer += 'G'
+	elif command == '+':
+		obuffer += '+'
+	elif command == '-':
+		obuffer += '-'
+	elif command == 'S':
+		obuffer += 'S'
+	elif command == 'F':
+		obuffer += 'F'
+	elif command == 'N':
+		obuffer += 'G'
+	else:
+		obuffer = "E! Unknown Command: ",command,args
+
+	return obuffer
+
+
 ibuffer = '';
 old_settings = termios.tcgetattr(sys.stdin)
 try:
@@ -133,7 +176,6 @@ try:
 		tick = time.clock()
 		motors_moving = False 
 		for motor in motors:
-	
 			if (motor.direction == 0):
 				True = True
 			else:
@@ -155,12 +197,19 @@ try:
 				execute = True
 			ibuffer += c
 		if (execute) :
-			inP = ibuffer.split();
-			degrees = int(inP[0])
-			speed = int(inP[1])
-			print degrees, " - ", speed
-			motors[0].rotate_degrees(degrees, -speed)
-			motors[1].rotate_degrees(degrees,  speed)
+			if ibuffer.startswith("C"): #all commands start with C
+				command = ibuffer[1]
+				arguments = ibuffer[2:]
+				obuffer = control(command, arguments)
+				print obuffer
+			else:
+				print "E! Unknown Control: ",ibuffer
+			#inP = ibuffer.split();
+			#degrees = int(inP[0])
+			#speed = int(inP[1])
+			#print degrees, " - ", speed
+			#motors[0].rotate_degrees(degrees, -speed)
+			#motors[1].rotate_degrees(degrees,  speed)
 
 			ibuffer = ''
 		if (not motors_moving and False) :
