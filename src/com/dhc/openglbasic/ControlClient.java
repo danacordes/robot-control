@@ -41,7 +41,8 @@ public class ControlClient {
 		out.println(command);
 	}
 	
-	public String[] read(){
-	}
+//	public String[] read(){
+		//retu
+//	}
 
 }

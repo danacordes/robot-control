@@ -148,7 +148,7 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer{
 	public static final int BUTTON_POWER = 0;
 	public static final int BUTTON_STOP = 1;
 	public static final int BUTTON_SPEAK = 2;
-	public static final int BUTTON_SPIN360 = 3;
+	public static final int BUTTON_CONNECT = 3;
 	
 	private volatile ArrayList<Info> infos = new ArrayList<Info>();
 	public static final int INFO_CONNECTED = 0;
@@ -166,7 +166,7 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer{
 		buttons.add(new Button(upperRightButton, R.drawable.button_transparent, "Power", upperRightButtonTouch, BUTTON_POWER));
 		buttons.add(new Button(midRightButton, R.drawable.button_transparent, "Stop", midRightButtonTouch, BUTTON_STOP));
 		buttons.add(new Button(upperLeftButton, R.drawable.button_transparent, "Speak", upperLeftButtonTouch, BUTTON_SPEAK));
-		buttons.add(new Button(midLeftButton, R.drawable.button_transparent, "Spin 360", midLeftButtonTouch, BUTTON_SPIN360));
+		buttons.add(new Button(midLeftButton, R.drawable.button_transparent, "Connect", midLeftButtonTouch, BUTTON_CONNECT));
 
 		//set up the info displays
 		infos.add(new Info(infoTemplate, R.drawable.info, "Connected", INFO_CONNECTED));

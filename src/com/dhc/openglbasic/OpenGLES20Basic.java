@@ -1,5 +1,9 @@
 package com.dhc.openglbasic;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
@@ -86,6 +90,7 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 				//azimuth = orientation[0];  //orientation contains azimuth, pitch and roll or z, x, y
 				//want to use z for accel and turning
 				((MyGLSurfaceView)myGLView).updateMovement(orientation);
+				((MyGLSurfaceView)myGLView).updateNetwork();
 //				((MyGLSurfaceView)myGLView).updateMovement(R);
 			}
 		}
@@ -108,6 +113,62 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 			
 			//render the view only when there is a change in the drawing data
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		}
+
+		ByteBuffer in;
+		ByteBuffer out;
+		public void updateNetwork(){
+			if(socketChannel==null)
+				//bail if we're not connected
+				return;
+			
+			if(out==null)
+				out = ByteBuffer.allocate(48);
+			if(in==null)
+				 in = ByteBuffer.allocate(48);
+
+			//reading
+			int bytesRead = -1;
+			try {
+				bytesRead = socketChannel.read(in);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				Log.e(TAG,e.toString());
+			}
+			if(bytesRead==-1){
+				//handle disconnect
+			}
+			
+			//writing
+//			String newData = "New String to write to file..." + System.currentTimeMillis();
+
+			/*
+				out.clear();
+				out.put(newData.getBytes());
+				out.flip();
+			*/
+
+			if(out.hasRemaining()){
+			    try {
+					socketChannel.write(out);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.e(TAG,e.toString());
+				}
+			}
+			/*
+			while(out.hasRemaining()) {
+			    try {
+					socketChannel.write(out);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					Log.e(TAG,e1.toString());
+				}
+			}
+			*/			
 		}
 
 		private float[] offsets = {0f, 0f, 0f};
@@ -234,8 +295,13 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 		private float mPreviousX;
 		private float mPreviousY;
 		private final float TOUCH_SCALE_FACTOR = 180.0f / 1024;
-
+		
 		private boolean[] buttonStates = {false, false, false, false};
+
+		private SocketChannel socketChannel;
+		public String SERVER_ADDRESS = "207.178.144.76"; //fandisti.nmbtc.com
+		public int SERVER_PORT = 5555;
+
 		@Override
 		public boolean onTouchEvent(MotionEvent e){
 			//MotionEvent reports input details from he touch screen
@@ -294,10 +360,50 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 								case MyGL20Renderer.BUTTON_SPEAK:
 									buttonStates[MyGL20Renderer.BUTTON_SPEAK] = ! buttonStates[MyGL20Renderer.BUTTON_SPEAK];
 									b.setColor(buttonStates[MyGL20Renderer.BUTTON_SPEAK]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+									
+									out.clear();
+									out.put(("S" + System.currentTimeMillis()).getBytes());
+									out.flip();
+									
+
 									break;
-								case MyGL20Renderer.BUTTON_SPIN360:
-									buttonStates[MyGL20Renderer.BUTTON_SPIN360] = ! buttonStates[MyGL20Renderer.BUTTON_SPIN360];
-									b.setColor(buttonStates[MyGL20Renderer.BUTTON_SPIN360]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+								case MyGL20Renderer.BUTTON_CONNECT:
+									buttonStates[MyGL20Renderer.BUTTON_CONNECT] = ! buttonStates[MyGL20Renderer.BUTTON_CONNECT];
+
+									//http://tutorials.jenkov.com/java-nio/socket-channel.html
+									if(!buttonStates[MyGL20Renderer.BUTTON_CONNECT]){
+										//already connected, so close it
+										try {
+											socketChannel.close();
+											buttonStates[MyGL20Renderer.BUTTON_CONNECT] = false;
+										} catch (IOException e1) {
+											// TODO Auto-generated catch block
+											e1.printStackTrace();
+											Log.e(TAG,e1.toString());
+										}  
+									} else {
+										//else connect
+									
+										try {
+											//http://stackoverflow.com/questions/6976317/android-http-connection-exception
+											socketChannel = SocketChannel.open();
+											socketChannel.configureBlocking(false);
+											socketChannel.connect(new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT));
+											
+											while(! socketChannel.finishConnect() ){
+											    //wait, or do something else...   
+												b.setColor(MyGL20Renderer.whiteColor);
+											}
+											buttonStates[MyGL20Renderer.BUTTON_CONNECT] = true;
+										} catch (IOException e1) {
+											// TODO Auto-generated catch block
+											e1.printStackTrace();
+											Log.e(TAG,e1.toString());
+										}
+									}
+
+									b.setColor(buttonStates[MyGL20Renderer.BUTTON_CONNECT]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+									
 									break;
 							}
 					}
@@ -312,5 +418,6 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 			return true;
 		}
 	}
+	
 
 }
