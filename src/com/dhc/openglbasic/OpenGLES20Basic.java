@@ -1,21 +1,28 @@
 package com.dhc.openglbasic;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -25,9 +32,10 @@ import android.view.WindowManager;
 
 public class OpenGLES20Basic extends Activity implements SensorEventListener {
 
-	private GLSurfaceView myGLView;
+	private static GLSurfaceView myGLView;
 	private static Context context;
 	private SensorManager mSensorManager;
+	private static OpenGLES20Basic activity;
 	Sensor accelerometer;
 	Sensor magnetometer;
 	
@@ -37,6 +45,7 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		OpenGLES20Basic.context = getApplicationContext();
+		activity = this;
 		//setContentView(R.layout.activity_open_gles20_basic);
 		
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -48,11 +57,28 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+		
+		CommandReceiver  cr  = new CommandReceiver();
+
+		//mStatusIntentFilter.addDataScheme("http");
+        // Registers the receiver with the new filter
+//		IntentFilter mStatusIntentFilter = new IntentFilter(Constants.COMMAND_ACTION);
+//		LocalBroadcastManager.getInstance(this).registerReceiver(cr , mStatusIntentFilter);
+		
+		IntentFilter mStatusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(cr,mStatusIntentFilter);
+
+//		statusIntentFilter = new IntentFilter(Constants.ACTION_ZOOM_IMAGE);
+//		LocalBroadcastManager.getInstance(this).registerReceiver(mResponseReceiver , new IntentFilter(Constants.ACTION_ZOOM_IMAGE));
+		
 	}
 	
-	public static Context getContext() {
-		return OpenGLES20Basic.context;
+	public static OpenGLES20Basic getActivity() {
+		return activity;
 	}	
+	public static Context getContext() {
+			return context;
+	}
 	protected void onResume(){
 		super.onResume();
 		mSensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
@@ -74,6 +100,9 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 	
 	float[] mGravity;
 	float[] mGeomagnetic;
+	public static void setButtonColor(int buttonId, float[] color){
+		((MyGLSurfaceView)myGLView).getRenderer().getButton(buttonId).setColor(color);
+	}
 	public void onSensorChanged(SensorEvent event){
 		if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
 			mGravity = event.values;
@@ -90,11 +119,9 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 				//azimuth = orientation[0];  //orientation contains azimuth, pitch and roll or z, x, y
 				//want to use z for accel and turning
 				((MyGLSurfaceView)myGLView).updateMovement(orientation);
-				((MyGLSurfaceView)myGLView).updateNetwork();
 //				((MyGLSurfaceView)myGLView).updateMovement(R);
 			}
 		}
-		
 	}
 	
 	class MyGLSurfaceView extends GLSurfaceView{
@@ -114,61 +141,9 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 			//render the view only when there is a change in the drawing data
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		}
-
-		ByteBuffer in;
-		ByteBuffer out;
-		public void updateNetwork(){
-			if(socketChannel==null)
-				//bail if we're not connected
-				return;
-			
-			if(out==null)
-				out = ByteBuffer.allocate(48);
-			if(in==null)
-				 in = ByteBuffer.allocate(48);
-
-			//reading
-			int bytesRead = -1;
-			try {
-				bytesRead = socketChannel.read(in);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				Log.e(TAG,e.toString());
-			}
-			if(bytesRead==-1){
-				//handle disconnect
-			}
-			
-			//writing
-//			String newData = "New String to write to file..." + System.currentTimeMillis();
-
-			/*
-				out.clear();
-				out.put(newData.getBytes());
-				out.flip();
-			*/
-
-			if(out.hasRemaining()){
-			    try {
-					socketChannel.write(out);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					Log.e(TAG,e.toString());
-				}
-			}
-			/*
-			while(out.hasRemaining()) {
-			    try {
-					socketChannel.write(out);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					Log.e(TAG,e1.toString());
-				}
-			}
-			*/			
+		
+		public MyGL20Renderer getRenderer(){
+			return mRenderer;
 		}
 
 		private float[] offsets = {0f, 0f, 0f};
@@ -197,6 +172,11 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 		private float mTurnPercentage;
 		private float mAcceleratePercentage;
 		NumberFormat nf = NumberFormat.getPercentInstance();
+		
+		private final int MOVEMENT_MESSAGE_RATE = 500; //in ms
+		private long lastMessage = 0;
+		
+		private int lastLeftPower, lastRightPower;
 		
 		public void updateMovement(float[] orientation){
 			if(takeOffsetsFlag){
@@ -281,6 +261,33 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 				rightPowerBalance = ((mTurnPercentage+REVERSE_TIPPING_POINT) / REVERSE_TIPPING_POINT);
 			mRenderer.rightPowerBalance = rightPowerBalance;
 			mRenderer.rightPower = rightPowerBalance * mAcceleratePercentage;
+
+			long now = new Date().getTime();
+			if(now > (lastMessage + MOVEMENT_MESSAGE_RATE)){
+				
+				int leftPower = (int)(mRenderer.leftPower * 100);
+				if( leftPower != lastLeftPower){ 
+					Intent i = new Intent(getActivity(), NetworkControlService.class);
+					i.setAction(Constants.COMMAND_ACTION);
+					i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_GO);
+					i.putExtra(Constants.EXTENDED_DATA_LEFT_POWER, leftPower);
+					getActivity().startService(i);
+					lastLeftPower = leftPower;
+				}
+
+				int rightPower = (int)(mRenderer.rightPower * 100);
+				if(rightPower != lastRightPower){ 
+//					Log.e(TAG, "rightPower: " + rightPower);
+					Intent i = new Intent(getActivity(), NetworkControlService.class);
+					i.setAction(Constants.COMMAND_ACTION);
+					i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_GO);
+					i.putExtra(Constants.EXTENDED_DATA_RIGHT_POWER, rightPower);
+					getActivity().startService(i);
+					lastRightPower = rightPower;
+				}
+				
+				lastMessage = now;
+			}
 			
 
 //			System.out.println("turn=" + nf.format(mTurnPercentage) + "\t" + "  acceleration=" + nf.format(mAcceleratePercentage));
@@ -343,7 +350,10 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 						if(
 								xP > range[0] && xP < range[2] &&
 								yP > range[1] && yP < range[3]
-						)	
+						)	{
+							Intent i = new Intent(getActivity(), NetworkControlService.class);
+							i.setAction(Constants.COMMAND_ACTION);
+
 							switch (b.getId()) {
 								case MyGL20Renderer.BUTTON_POWER:
 									buttonStates[MyGL20Renderer.BUTTON_POWER] = ! buttonStates[MyGL20Renderer.BUTTON_POWER];
@@ -354,58 +364,32 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 								case MyGL20Renderer.BUTTON_STOP:
 									buttonStates[MyGL20Renderer.BUTTON_STOP] = ! buttonStates[MyGL20Renderer.BUTTON_STOP];
 									mRenderer.getButton(MyGL20Renderer.BUTTON_STOP).setColor(buttonStates[MyGL20Renderer.BUTTON_STOP]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
-									if(! buttonStates[MyGL20Renderer.BUTTON_STOP]);
+									if(! buttonStates[MyGL20Renderer.BUTTON_STOP]){
 											setOffsets();
+									}
+									
+									i.putExtra(Constants.EXTENDED_DATA_COMMAND, buttonStates[MyGL20Renderer.BUTTON_STOP]?Constants.COMMAND_ENABLE:Constants.COMMAND_DISABLE);
+									
 									break;
 								case MyGL20Renderer.BUTTON_SPEAK:
 									buttonStates[MyGL20Renderer.BUTTON_SPEAK] = ! buttonStates[MyGL20Renderer.BUTTON_SPEAK];
 									b.setColor(buttonStates[MyGL20Renderer.BUTTON_SPEAK]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
 									
-									out.clear();
-									out.put(("S" + System.currentTimeMillis()).getBytes());
-									out.flip();
-									
-
 									break;
 								case MyGL20Renderer.BUTTON_CONNECT:
 									buttonStates[MyGL20Renderer.BUTTON_CONNECT] = ! buttonStates[MyGL20Renderer.BUTTON_CONNECT];
-
-									//http://tutorials.jenkov.com/java-nio/socket-channel.html
-									if(!buttonStates[MyGL20Renderer.BUTTON_CONNECT]){
-										//already connected, so close it
-										try {
-											socketChannel.close();
-											buttonStates[MyGL20Renderer.BUTTON_CONNECT] = false;
-										} catch (IOException e1) {
-											// TODO Auto-generated catch block
-											e1.printStackTrace();
-											Log.e(TAG,e1.toString());
-										}  
-									} else {
-										//else connect
 									
-										try {
-											//http://stackoverflow.com/questions/6976317/android-http-connection-exception
-											socketChannel = SocketChannel.open();
-											socketChannel.configureBlocking(false);
-											socketChannel.connect(new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT));
-											
-											while(! socketChannel.finishConnect() ){
-											    //wait, or do something else...   
-												b.setColor(MyGL20Renderer.whiteColor);
-											}
-											buttonStates[MyGL20Renderer.BUTTON_CONNECT] = true;
-										} catch (IOException e1) {
-											// TODO Auto-generated catch block
-											e1.printStackTrace();
-											Log.e(TAG,e1.toString());
-										}
-									}
+									i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_CONNECT);
 
 									b.setColor(buttonStates[MyGL20Renderer.BUTTON_CONNECT]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
 									
 									break;
+								default:
+									break;
 							}
+							getActivity().startService(i);
+
+						}
 					}
 
 					
@@ -419,5 +403,24 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 		}
 	}
 	
+	private class CommandReceiver extends BroadcastReceiver{
+		public final static String TAG = "BroadcastReceiver";
+
+		private CommandReceiver(){
+		}
+		
+		public void onReceive(Context context, Intent intent){
+			//handle intents
+			switch(intent.getIntExtra(Constants.EXTENDED_DATA_COMMAND, -1)){
+				case Constants.STATE_ACTION_CONNECTED:
+					Log.d(TAG, "State: Connected");
+					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_STOP,MyGL20Renderer.fgSquareColor);
+					break;
+				default: 
+					break;
+			}
+		}
+	}	
+
 
 }

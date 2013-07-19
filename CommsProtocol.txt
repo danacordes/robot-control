@@ -41,13 +41,6 @@ C+
 ===================
 This will power up the motor controllers and set the robot so it can move
 
-Speak
-==================
-CS<index>
-===================
-The robot will have the ability to play sound samples.  Index will indicate which
-one to play
-
 Function
 ==================
 CF<index>
@@ -57,7 +50,7 @@ indicates which one to play
 
 Sensor Value
 ==================
-IN<index>
+CN<index>
 ===================
 The robot will be equipped with sensors.  In order to retrieve sensor data, you can 
 send the CONTROL command and the index of the sensor.   
