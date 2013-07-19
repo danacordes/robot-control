@@ -33,7 +33,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
+		<service
+	    	android:name=".NetworkControlService"
+	    	android:exported="false"/>
+        </application>
 	<uses-permission android:name="android.permission.WAKE_LOCK"/>
 	<uses-permission android:name="android.permission.INTERNET" /> 	
+	
 </manifest>
