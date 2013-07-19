@@ -11,6 +11,8 @@ public final class Constants{
 	public static final int STATE_ACTION_CLOSING = 		5;
 	public static final int STATE_ACTION_COMPLETE = 	4;
 	public static final int STATE_ACTION_CONNECTED = 	6;
+	public static final int STATE_ACTION_DISCONNECTED =	7;
+	public static final int STATE_ACTION_FUNCTION_COMPLETE =	8;
 
 	public static final int COMMAND_DEGREES = 	0;
 	public static final int COMMAND_GO = 		1;
@@ -19,6 +21,7 @@ public final class Constants{
 	public static final int COMMAND_FUNCTION = 	4;
 	public static final int COMMAND_SENSOR = 	5;
 	public static final int COMMAND_CONNECT = 	6;
+	public static final int COMMAND_POLLING = 	7;
 	
 	public static final String EXTENDED_DATA_COMMAND = "com.dhc.openglbasic.DATA_COMMAND";
 	public static final String EXTENDED_DATA_STATUS = "com.dhc.openglbasic.STATUS";
@@ -27,4 +30,5 @@ public final class Constants{
 	public static final String EXTENDED_DATA_SPEED = "com.dhc.openglbasic.SPEED";
 	public static final String EXTENDED_DATA_LEFT_POWER = "com.dhc.openglbasic.LEFT";
 	public static final String EXTENDED_DATA_RIGHT_POWER = "com.dhc.openglbasic.RIGHT";
+	public static final String EXTENDED_DATA_INDEX = "com.dhc.openglbasic.INDEX";
 }

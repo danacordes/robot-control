@@ -155,8 +155,8 @@ public class NioClient implements Runnable {
 		// And pass the response to it
 		if (handler.handleResponse(responseData)) {
 			// The handler has seen enough, close the connection
-			socketChannel.close();
-			socketChannel.keyFor(this.selector).cancel();
+//			socketChannel.close();
+//			socketChannel.keyFor(this.selector).cancel();
 		}
 	}
 
@@ -208,11 +208,11 @@ public class NioClient implements Runnable {
 	
 	private SocketChannel initiateConnection() throws IOException {
 		//check to see if we have a connection already.  if so, return it.
-//		if(socketChannel != null && socketChannel.isConnected())
-			//return socketChannel;
+		if(socketChannel != null && socketChannel.isConnected())
+			return socketChannel;
 		
 		// Create a non-blocking socket channel
-		SocketChannel socketChannel = SocketChannel.open();
+		socketChannel = SocketChannel.open();
 		socketChannel.configureBlocking(false);
 
 		// Kick off connection establishment
