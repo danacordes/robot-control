@@ -58,13 +58,13 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 		accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		magnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		
-		CommandReceiver  cr  = new CommandReceiver();
 
 		//mStatusIntentFilter.addDataScheme("http");
         // Registers the receiver with the new filter
 //		IntentFilter mStatusIntentFilter = new IntentFilter(Constants.COMMAND_ACTION);
 //		LocalBroadcastManager.getInstance(this).registerReceiver(cr , mStatusIntentFilter);
 		
+		CommandReceiver  cr  = new CommandReceiver();
 		IntentFilter mStatusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(cr,mStatusIntentFilter);
 
@@ -88,6 +88,11 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 	protected void onPause(){
 		super.onPause();
 		mSensorManager.unregisterListener(this);
+		try {
+			CommunicationManager.getInstance().disconnect();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -102,6 +107,9 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 	float[] mGeomagnetic;
 	public static void setButtonColor(int buttonId, float[] color){
 		((MyGLSurfaceView)myGLView).getRenderer().getButton(buttonId).setColor(color);
+	}
+	public static void setInfoColor(int infoId, float[] color){
+		((MyGLSurfaceView)myGLView).getRenderer().getInfo(infoId).setColor(color);
 	}
 	public void onSensorChanged(SensorEvent event){
 		if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
@@ -119,6 +127,7 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 				//azimuth = orientation[0];  //orientation contains azimuth, pitch and roll or z, x, y
 				//want to use z for accel and turning
 				((MyGLSurfaceView)myGLView).updateMovement(orientation);
+
 //				((MyGLSurfaceView)myGLView).updateMovement(R);
 			}
 		}
@@ -264,30 +273,40 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 
 			long now = new Date().getTime();
 			if(now > (lastMessage + MOVEMENT_MESSAGE_RATE)){
+				boolean intentSent = false;
 				
 				int leftPower = (int)(mRenderer.leftPower * 100);
 				if( leftPower != lastLeftPower){ 
-					Intent i = new Intent(getActivity(), NetworkControlService.class);
+					Intent i = new Intent(getActivity(), CommandManager.class);
 					i.setAction(Constants.COMMAND_ACTION);
 					i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_GO);
 					i.putExtra(Constants.EXTENDED_DATA_LEFT_POWER, leftPower);
 					getActivity().startService(i);
 					lastLeftPower = leftPower;
+					intentSent = true;
 				}
 
 				int rightPower = (int)(mRenderer.rightPower * 100);
 				if(rightPower != lastRightPower){ 
 //					Log.e(TAG, "rightPower: " + rightPower);
-					Intent i = new Intent(getActivity(), NetworkControlService.class);
+					Intent i = new Intent(getActivity(), CommandManager.class);
 					i.setAction(Constants.COMMAND_ACTION);
 					i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_GO);
 					i.putExtra(Constants.EXTENDED_DATA_RIGHT_POWER, rightPower);
 					getActivity().startService(i);
 					lastRightPower = rightPower;
+					intentSent = true;
 				}
 				
+				//polling Intent, just to make sure we're watching the instream
+				if(!intentSent){
+					Intent i = new Intent(getActivity(), CommandManager.class);
+					i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_POLLING);
+					getActivity().startService(i);
+				}
 				lastMessage = now;
 			}
+			
 			
 
 //			System.out.println("turn=" + nf.format(mTurnPercentage) + "\t" + "  acceleration=" + nf.format(mAcceleratePercentage));
@@ -298,7 +317,7 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 //			Log.e(TAG, "mTurnPercentage: " + mTurnPercentage);
 			requestRender();
 		}
-		
+
 		private float mPreviousX;
 		private float mPreviousY;
 		private final float TOUCH_SCALE_FACTOR = 180.0f / 1024;
@@ -344,6 +363,7 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 					float xP = x/width;
 					float yP = y/height; 
 					//Log.e(TAG, (xP) + ", " + (yP));
+					boolean connected = CommunicationManager.getInstance().isConnected();
 					
 					for( Button b : mRenderer.getButtons()){
 						float[] range = b.getTouchDetectionRange();
@@ -351,15 +371,17 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 								xP > range[0] && xP < range[2] &&
 								yP > range[1] && yP < range[3]
 						)	{
-							Intent i = new Intent(getActivity(), NetworkControlService.class);
+							Intent i = new Intent(getActivity(), CommandManager.class);
 							i.setAction(Constants.COMMAND_ACTION);
 
 							switch (b.getId()) {
 								case MyGL20Renderer.BUTTON_POWER:
-									buttonStates[MyGL20Renderer.BUTTON_POWER] = ! buttonStates[MyGL20Renderer.BUTTON_POWER];
-									b.setColor(buttonStates[MyGL20Renderer.BUTTON_POWER]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
-									
-									mRenderer.getInfo(MyGL20Renderer.INFO_ENABLED).updateMessage(buttonStates[MyGL20Renderer.BUTTON_POWER]?"Disabled":"Enabled");
+									if(connected){
+										buttonStates[MyGL20Renderer.BUTTON_POWER] = ! buttonStates[MyGL20Renderer.BUTTON_POWER];
+										b.setColor(buttonStates[MyGL20Renderer.BUTTON_POWER]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+										
+										mRenderer.getInfo(MyGL20Renderer.INFO_ENABLED).updateMessage(buttonStates[MyGL20Renderer.BUTTON_POWER]?"Disabled":"Enabled");
+									}
 									//break; //a power off will always trigger a stop.
 								case MyGL20Renderer.BUTTON_STOP:
 									buttonStates[MyGL20Renderer.BUTTON_STOP] = ! buttonStates[MyGL20Renderer.BUTTON_STOP];
@@ -372,16 +394,24 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 									
 									break;
 								case MyGL20Renderer.BUTTON_SPEAK:
-									buttonStates[MyGL20Renderer.BUTTON_SPEAK] = ! buttonStates[MyGL20Renderer.BUTTON_SPEAK];
-									b.setColor(buttonStates[MyGL20Renderer.BUTTON_SPEAK]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+//									buttonStates[MyGL20Renderer.BUTTON_SPEAK] = ! buttonStates[MyGL20Renderer.BUTTON_SPEAK];
+//									b.setColor(buttonStates[MyGL20Renderer.BUTTON_SPEAK]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+									if(connected){
+										b.setColor(MyGL20Renderer.fgSquareColor);
+										
+										i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_FUNCTION);
+										i.putExtra(Constants.EXTENDED_DATA_INDEX, 1);
+									}
+									
 									
 									break;
 								case MyGL20Renderer.BUTTON_CONNECT:
-									buttonStates[MyGL20Renderer.BUTTON_CONNECT] = ! buttonStates[MyGL20Renderer.BUTTON_CONNECT];
+									//buttonStates[MyGL20Renderer.BUTTON_CONNECT] = ! buttonStates[MyGL20Renderer.BUTTON_CONNECT];
+									b.setColor(MyGL20Renderer.greyColor);
 									
 									i.putExtra(Constants.EXTENDED_DATA_COMMAND, Constants.COMMAND_CONNECT);
 
-									b.setColor(buttonStates[MyGL20Renderer.BUTTON_CONNECT]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
+									//b.setColor(buttonStates[MyGL20Renderer.BUTTON_CONNECT]?MyGL20Renderer.fgSquareColor:MyGL20Renderer.lightBlueColor);
 									
 									break;
 								default:
@@ -404,17 +434,33 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 	}
 	
 	private class CommandReceiver extends BroadcastReceiver{
-		public final static String TAG = "BroadcastReceiver";
+		public final static String TAG = "CommandReceiver";
 
 		private CommandReceiver(){
 		}
 		
 		public void onReceive(Context context, Intent intent){
 			//handle intents
-			switch(intent.getIntExtra(Constants.EXTENDED_DATA_COMMAND, -1)){
+			Log.d(TAG, "Received Intent");
+			switch(intent.getIntExtra(Constants.EXTENDED_DATA_STATUS, -1)){
 				case Constants.STATE_ACTION_CONNECTED:
 					Log.d(TAG, "State: Connected");
-					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_STOP,MyGL20Renderer.fgSquareColor);
+					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_CONNECT,MyGL20Renderer.fgSquareColor);
+					OpenGLES20Basic.getActivity().setInfoColor(MyGL20Renderer.INFO_CONNECTED,MyGL20Renderer.fgSquareColor);
+					
+					break;
+				case Constants.STATE_ACTION_DISCONNECTED:
+					Log.d(TAG, "State: Disconnected");
+					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_CONNECT,MyGL20Renderer.lightBlueColor);
+					OpenGLES20Basic.getActivity().setInfoColor(MyGL20Renderer.INFO_CONNECTED,MyGL20Renderer.greyColor);
+					break;
+				case Constants.STATE_ACTION_FUNCTION_COMPLETE:
+					Log.d(TAG, "State: Disconnected");
+					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_SPEAK,MyGL20Renderer.lightBlueColor);
+					break;
+				case Constants.STATE_ACTION_COMPLETE:
+					Log.d(TAG, "State: Complete");
+					OpenGLES20Basic.getActivity().setButtonColor(MyGL20Renderer.BUTTON_STOP,MyGL20Renderer.lightBlueColor);
 					break;
 				default: 
 					break;

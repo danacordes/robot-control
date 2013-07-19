@@ -34,7 +34,7 @@
             </intent-filter>
         </activity>
 		<service
-	    	android:name=".NetworkControlService"
+	    	android:name=".CommandManager"
 	    	android:exported="false"/>
         </application>
 	<uses-permission android:name="android.permission.WAKE_LOCK"/>
