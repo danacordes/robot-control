@@ -43,7 +43,8 @@ public class CommandManager extends IntentService {
 //			t.setDaemon(true);
 //			t.start();
 //			ResponseHandler handler = new ResponseHandler();
-			 
+
+/*			
 			Bundle b = intent.getExtras();
 			if(b != null){
 				Log.d(TAG, "Extras:");
@@ -53,7 +54,7 @@ public class CommandManager extends IntentService {
 					Log.d(TAG, "\t" + key + ": " + o);
 				}
 			}
-
+*/
 			switch (intent.getIntExtra(Constants.EXTENDED_DATA_COMMAND,
 					Constants.COMMAND_DISABLE)) {
 				case Constants.COMMAND_DEGREES:
