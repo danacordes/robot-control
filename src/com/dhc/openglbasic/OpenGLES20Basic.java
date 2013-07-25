@@ -363,14 +363,18 @@ public class OpenGLES20Basic extends Activity implements SensorEventListener {
 					float xP = x/width;
 					float yP = y/height; 
 					//Log.e(TAG, (xP) + ", " + (yP));
+					//Log.e(TAG, (width) + ", " + (height));
 					boolean connected = CommunicationManager.getInstance().isConnected();
 					
 					for( Button b : mRenderer.getButtons()){
-						float[] range = b.getTouchDetectionRange();
+						//float[] range = b.getTouchDetectionRange();
 						if(
-								xP > range[0] && xP < range[2] &&
-								yP > range[1] && yP < range[3]
+								b.wasTouched(xP, yP)
+//								xP > range[0] && xP < range[2] &&
+//								yP > range[1] && yP < range[3]
 						)	{
+							Log.e(TAG, "Touched!");
+							Log.e(TAG, b.messageText);
 							Intent i = new Intent(getActivity(), CommandManager.class);
 							i.setAction(Constants.COMMAND_ACTION);
 
