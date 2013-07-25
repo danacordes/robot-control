@@ -66,11 +66,12 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer{
 		0.0f, 0.0f, 0.0f	//bottom right
 	};
 
-	public static float rightSquare[] = {		
+	public static float rightSquare[] = {
 		-1.25f,	 0.7f,	0.0f,	//top left
 		-1.25f,	-0.7f,	0.0f,	//bottom left
 		 -0.75f,-0.7f,	0.0f,	//bottom right
-		 -0.75f, 0.7f,	0.0f	};	//top right
+		 -0.75f, 0.7f,	0.0f	//top right
+		 };
 	static float rightForwardTriangleCoords[] = { //in counterclockwise order:
 		-1.26f, 0.61f, 0.0f, 	//top
 		-1.40f, 0.01f, 0.0f,		//bottom left
@@ -90,37 +91,53 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer{
 	
 	public static float upperRightButtonTouch[] = {.85f, 0f, 1.0f, 0.27f};
 	public static float upperRightButton[] = {		
-		-2.10f,	0.9f,	0.0f,	//top left
-		-2.10f,	0.3f,	0.0f,	//bottom left
-		-1.50f, 0.3f,	0.0f,	//bottom right
-		-1.50f, 0.9f,	0.0f	//top right	
+		-2.10f,	0.98f,	0.0f,	//top left
+		-2.10f,	0.38f,	0.0f,	//bottom left
+		-1.50f, 0.38f,	0.0f,	//bottom right
+		-1.50f, 0.98f,	0.0f	//top right	
 	};	
 	
 	public static float midRightButtonTouch[] = {.85f, .33f, 1.0f, 0.6f};
 	public static float midRightButton[] = {		
-		-2.10f,	0.2f,	0.0f,	//top left
-		-2.10f,	-0.4f,	0.0f,	//bottom left
-		-1.50f, -0.4f,	0.0f,	//bottom right
-		-1.50f, 0.2f,	0.0f	//top right	
+		-2.10f,	0.3f,	0.0f,	//top left
+		-2.10f,	-0.3f,	0.0f,	//bottom left
+		-1.50f, -0.3f,	0.0f,	//bottom right
+		-1.50f, 0.3f,	0.0f	//top right
 	};	
-	
+
+	public static float lowRightButtonTouch[] = {.85f, .33f, 1.0f, 0.6f};
+	public static float lowRightButton[] = {		
+		-2.10f,	-0.98f,	0.0f,	//top left
+		-2.10f,	-0.38f,	0.0f,	//bottom left
+		-1.50f, -0.38f,	0.0f,	//bottom right
+		-1.50f, -0.98f,	0.0f	//top right	
+	};	
+
 	public static float upperLeftButtonTouch[] = {.0f, 0f, 0.15f, 0.27f};
 	public static float upperLeftButton[] = {		
-		2.10f,	0.9f,	0.0f,	//top left
-		2.10f,	0.3f,	0.0f,	//bottom left
-		1.50f, 0.3f,	0.0f,	//bottom right
-		1.50f, 0.9f,	0.0f	//top right	
+		2.10f,	0.98f,	0.0f,	//top left
+		2.10f,	0.38f,	0.0f,	//bottom left
+		1.50f, 0.38f,	0.0f,	//bottom right
+		1.50f, 0.98f,	0.0f	//top right	
 	};	
 
 	public static float midLeftButtonTouch[] = {.0f, .33f, 0.15f, 0.6f};
 	public static float midLeftButton[] = {		
-		2.10f,	0.2f,	0.0f,	//top left
-		2.10f,	-0.4f,	0.0f,	//bottom left
-		1.50f, -0.4f,	0.0f,	//bottom right
-		1.50f, 0.2f,	0.0f	//top right	
+		2.10f,	0.3f,	0.0f,	//top left
+		2.10f,	-0.3f,	0.0f,	//bottom left
+		1.50f, -0.3f,	0.0f,	//bottom right
+		1.50f, 0.3f,	0.0f	//top right	
 	};
 	
+	public static float lowLeftButtonTouch[] = {.0f, .33f, 0.15f, 0.6f};
+	public static float lowLeftButton[] = {		
+		2.10f,	-0.98f,	0.0f,	//top left
+		2.10f,	-0.38f,	0.0f,	//bottom left
+		1.50f, -0.38f,	0.0f,	//bottom right
+		1.50f, -0.98f,	0.0f	//top right	
+	};
 	
+
 	public static float infoTemplate[] = {		
 		-0.25f,	-0.25f,	0.0f,	//top left
 		-0.25f,	 0.25f,	0.0f,	//bottom left
@@ -149,32 +166,43 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer{
 	public static final int BUTTON_STOP = 1;
 	public static final int BUTTON_SPEAK = 2;
 	public static final int BUTTON_CONNECT = 3;
+	public static final int BUTTON_PLACEHOLDER1 = 4;
+	public static final int BUTTON_PLACEHOLDER2 = 5;
+	public static final float BUTTON_WIDTH = 0.6f;
+	 
 	
 	private volatile ArrayList<Info> infos = new ArrayList<Info>();
 	public static final int INFO_CONNECTED = 0;
 	public static final int INFO_ENABLED = 1;
 	public static final int INFO_PLACEHOLDER1 = 2;
 	public static final int INFO_PLACEHOLDER2 = 3;
-	public static final int INFO_PLACEHOLDER3 = 4;
-	public static final int INFO_PLACEHOLDER4 = 5;
+	public static final int INFO_INVERT = 4;
+	public static final int INFO_REBALANCE = 5;
+	public static final float INFO_WIDTH = .5f;
 	
 	public void onSurfaceCreated(GL10 unused, EGLConfig config){
 		//set the frame bg color
 		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
+		
+
 		//set up the buttons
-		buttons.add(new Button(upperRightButton, R.drawable.button_transparent, "Power", upperRightButtonTouch, BUTTON_POWER));
-		buttons.add(new Button(midRightButton, R.drawable.button_transparent, "Stop", midRightButtonTouch, BUTTON_STOP));
-		buttons.add(new Button(upperLeftButton, R.drawable.button_transparent, "Speak", upperLeftButtonTouch, BUTTON_SPEAK));
-		buttons.add(new Button(midLeftButton, R.drawable.button_transparent, "Connect", midLeftButtonTouch, BUTTON_CONNECT));
+		buttons.add(new Button(-2.10f,	0.98f, BUTTON_WIDTH, R.drawable.button_transparent, "Power", BUTTON_POWER));
+		buttons.add(new Button(-2.10f,	0.3f, BUTTON_WIDTH, R.drawable.button_transparent, "Stop", BUTTON_STOP));
+		buttons.add(new Button(-2.10f,	-0.98f, BUTTON_WIDTH, R.drawable.button_transparent, "P1", BUTTON_PLACEHOLDER1));
+
+		buttons.add(new Button(2.10f,	0.98f, BUTTON_WIDTH, R.drawable.button_transparent, "Speak", BUTTON_SPEAK));
+		buttons.add(new Button(2.10f,	0.3f, BUTTON_WIDTH, R.drawable.button_transparent, "Connect", BUTTON_CONNECT));
+		buttons.add(new Button(2.10f,	-0.98f, BUTTON_WIDTH, R.drawable.button_transparent, "P2", BUTTON_PLACEHOLDER2));
 
 		//set up the info displays
-		infos.add(new Info(infoTemplate, R.drawable.info, "Connected", INFO_CONNECTED));
-		infos.add(new Info(infoTemplate, R.drawable.info, "Enabled", INFO_ENABLED));
-		infos.add(new Info(infoTemplate, R.drawable.info, "P1", INFO_PLACEHOLDER1));
-		infos.add(new Info(infoTemplate, R.drawable.info, "P2", INFO_PLACEHOLDER2));
-		infos.add(new Info(infoTemplate, R.drawable.info, "P3", INFO_PLACEHOLDER3));
-		infos.add(new Info(infoTemplate, R.drawable.info, "P4", INFO_PLACEHOLDER4));
+//		(squareCoords[0], squareCoords[1], squareCoords[1] - squareCoords[4]);
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "Connected", INFO_CONNECTED));
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "Enabled", INFO_ENABLED));
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "1", INFO_PLACEHOLDER1));
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "2", INFO_PLACEHOLDER2));
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "3", INFO_INVERT));
+		infos.add(new Info(-0.25f,	-0.25f, INFO_WIDTH, R.drawable.info, "4", INFO_REBALANCE));
 
 		myTriangle = new Triangle(null);
 		//mySquare = new Square();
@@ -497,10 +525,9 @@ class Square {
 		
 		private final float[] mTranslationMatrix = new float[16];
 		private static final String TAG = "Info";
-		private static final boolean flipTexture = false;
 
-		public Info(float[] squareCoords, int background, String messageText, int id){
-			super(squareCoords, background, messageText, null, id, flipTexture);
+		public Info(float upperLeftX, float upperLeftY, float width, int background, String messageText, int id){
+			super(upperLeftX, upperLeftY, width, background, messageText, id);
 			setColor(MyGL20Renderer.greyColor);
 		}
 		
@@ -521,16 +548,11 @@ class Square {
 
 			Matrix.multiplyMM(mvpMatrix, 0, mTranslationMatrix, 0, mvpMatrix, 0);
 
-			Matrix.setRotateM(mTranslationMatrix, 0, 180, 0, 0, -1.0f);
-			
-			//combine the rotation matrix with the projection and camera view
-			
-			Matrix.multiplyMM(mvpMatrix, 0, mTranslationMatrix, 0, mvpMatrix, 0);
 			super.draw(mvpMatrix);
 		}
 		
 		public void updateMessage(String message){
-			this.updateMessage(message, false);
+			this.updateMessage(message);
 		}
 	}
 	
@@ -572,18 +594,14 @@ class Square {
 		//set the color with r,g,b,a values
 		private float defaultColor[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
 		
-		private float touchDetection[];
 		
 		private int buttonId = -1;
 		
-		public float[] getTouchDetectionRange(){
-			return touchDetection;
-		}
 		public int getId(){
 			return buttonId;
 		}
 		
-		protected void updateMessage(String message, boolean flipTexture){
+		protected void updateMessage(String message){
 			if(message != null && !message.equals(this.messageText)){
 				this.messageText = message;
 				this.updateText = true; 
@@ -591,16 +609,78 @@ class Square {
 			}
 		}
 		
-		public Button(float[] squareCoords, int background, String buttonText, float[] touches, int id){
-				this(squareCoords, background, buttonText, touches, id, squareCoords[0]<=0);
+		public static final float MAX_MAP_WIDTH_OBSERVABLE = 4.34f;
+//		public static final float MAX_MAP_WIDTH = 4.55f;
+		public static final float MAX_MAP_WIDTH_SLOPE_LEFT = 4.34f;// for left
+//		public static final float MAX_MAP_WIDTH_SLOPE_RIGHT = 6.05f;// for right
+		public static final float MAX_MAP_WIDTH_SLOPE_RIGHT = 6.1f;// for right
+		
+		//this is wonky.  The projection along the x-axis is not linear, so this function is required
+		//to determine the relative max width, based on the current position of the touch.
+		public static float getMaxMapWidth(float currentPosition){
+			return (((currentPosition+(MAX_MAP_WIDTH_OBSERVABLE/2))/MAX_MAP_WIDTH_OBSERVABLE) * (MAX_MAP_WIDTH_SLOPE_RIGHT-MAX_MAP_WIDTH_SLOPE_LEFT) )+MAX_MAP_WIDTH_SLOPE_LEFT; 
+		}
+		public static final float MAX_MAP_HEIGHT = 2.0f;
+		public boolean wasTouched(float xP, float yP){
+			/*		
+			//full screen coverage
+			2.17f,	1.0f,	0.0f,	//top left
+			2.17f,	-1.0f,	0.0f,	//bottom left
+			-2.17f, -1.0f,	0.0f,	//bottom right
+			-2.17f, 1.0f,	0.0f	//top right
+			Full Width = 4.34
+			Full Height = 2
+			 */
+
+/*			
+			this.upperLeftX = squareCoords[0];
+			this.upperLeftY = squareCoords[1];
+			this.widthPercentage = widthPercentage;
+*/
+//			square[4] = upperLeftY<0?upperLeftY + width:upperLeftY - width;
+
+			//convert these values to percentages that will match the touch percentages
+			//invert this value
+			float tmpUpperLeftX = -this.upperLeftX;
+			float maxWidth = getMaxMapWidth(tmpUpperLeftX);
+			tmpUpperLeftX += maxWidth/2;
+			tmpUpperLeftX /= maxWidth;
+			
+			float tmpUpperLeftY = this.upperLeftY;
+			tmpUpperLeftY += MAX_MAP_HEIGHT/2;
+			tmpUpperLeftY /= MAX_MAP_HEIGHT;
+			
+			tmpUpperLeftY = 1 - tmpUpperLeftY;
+			
+			float tmpLowerRightX = tmpUpperLeftX + this.widthPercentage;
+			float tmpLowerRightY = tmpUpperLeftY + this.widthPercentage;
+			
+			Log.e(TAG + "-" + this.messageText, this.messageText + " (" + xP + "," + yP + ") | (" + tmpUpperLeftX + "," + tmpUpperLeftY + ") (" + tmpLowerRightX + "," +tmpLowerRightY + ")");
+			return (
+					xP > tmpUpperLeftX && xP < tmpLowerRightX &&
+					yP > tmpUpperLeftY && yP < tmpLowerRightY
+			);
+			
+//			return false;
 		}
 		
-		public Button(float[] squareCoords, int background, String buttonText, float[] touches, int id, boolean flipTexure){
-			if(touches!=null)
-				this.touchDetection = touches;
+		private float upperLeftX, upperLeftY, widthPercentage;
+		
+		public Button(float upperLeftX, float upperLeftY, float width, int background, String buttonText , int id){
+//			if(touches!=null)
+//				this.touchDetection = touches;
 			this.buttonId = id;
 			this.messageText = buttonText;
 			this.background = background;
+			
+//			2.10f,	0.98f,	0.0f,	//top left
+//			2.10f,	0.38f,	0.0f,	//bottom left
+			
+			float[] squareCoords = getSquare(upperLeftX, upperLeftY, width);
+			widthPercentage = width / 4.34f;
+
+			
+//			float[] touches
 			
 			//init vertex bb for shape coords
 			ByteBuffer bb = ByteBuffer.allocateDirect( squareCoords.length * 4 );  //4 byte per float
@@ -634,7 +714,11 @@ class Square {
 			GLES20.glAttachShader(mProgram, fragmentShader);	//add the fragment shader
 			GLES20.glLinkProgram(mProgram);	//create OpenGL ES program execs		
 			
-			mTextureDataHandle = loadTransparentTextureWithText(OpenGLES20Basic.getContext(), background, buttonText, flipTexure);
+			this.upperLeftX = upperLeftX;
+			this.upperLeftY = upperLeftY;
+			this.widthPercentage = widthPercentage;
+			
+			mTextureDataHandle = loadTransparentTextureWithText(OpenGLES20Basic.getContext(), background, buttonText, this.upperLeftX, this.upperLeftY, -1);
 		}
 		
 		private int maTextureHandle;
@@ -653,7 +737,7 @@ class Square {
 			
 			if(this.updateText){
 				this.updateText = false;
-				this.mTextureDataHandle = loadTransparentTextureWithText(OpenGLES20Basic.getContext(), this.background, this.messageText, false, this.mTextureDataHandle);
+				this.mTextureDataHandle = loadTransparentTextureWithText(OpenGLES20Basic.getContext(), this.background, this.messageText, this.upperLeftX, this.upperLeftY, this.mTextureDataHandle);
 			}
 			
 			//get handle to vertex shader's vPosition member
@@ -691,10 +775,7 @@ class Square {
             GLES20.glDisableVertexAttribArray(maTextureHandle);
 		}
 
-		public static int loadTransparentTextureWithText(final Context context, final int resourceId, String text, boolean flipHorizontal) {
-			return loadTransparentTextureWithText(context, resourceId,  text,  flipHorizontal, -1);
-		}
-		public static int loadTransparentTextureWithText(final Context context, final int resourceId, String text, boolean flipHorizontal, int existingHandle) {
+		public static int loadTransparentTextureWithText(final Context context, final int resourceId, String text, float x, float y, int existingHandle) {
 			Log.e(TAG, "Loading texture: " + resourceId + ": " + text);
 
 			final int[] textureHandle = new int[1];
@@ -757,7 +838,8 @@ class Square {
 	*/		    
 				//flip it
 				android.graphics.Matrix flip = new android.graphics.Matrix();
-				flip.postScale(flipHorizontal?-1f:1f, -1f);
+
+				flip.postScale(x>=0?1f:-1f, y>=0?-1f:1f);
 				bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),flip, true);
 				
 				// Bind to the texture in OpenGL
@@ -933,5 +1015,51 @@ class Square {
 
 			return shaderHandle;
 		}	
+		
+		public static float[] getSquare(float upperLeftX, float upperLeftY, float width){
+			/*
+			public static float upperLeftButton[] = {		
+				2.10f,	0.98f,	0.0f,	//top left
+				2.10f,	0.38f,	0.0f,	//bottom left
+				1.50f, 0.38f,	0.0f,	//bottom right
+				1.50f, 0.98f,	0.0f	//top right	
+			};*/
+			
+			float[] square = new float[12];
+			float zero = 0f;
+			
+			square[0] = upperLeftX;
+			square[1] = upperLeftY;
+			square[2] = zero;
+			
+			square[3] = upperLeftX;
+			square[4] = upperLeftY<0?upperLeftY + width:upperLeftY - width;
+			square[5] = zero;
+			
+			square[6] = upperLeftX<0?upperLeftX + width:upperLeftX - width;
+			square[7] = upperLeftY<0?upperLeftY + width:upperLeftY - width;
+			square[8] = zero;
+
+			square[9] = upperLeftX<0?upperLeftX + width:upperLeftX - width;
+			square[10] = upperLeftY;
+			square[11] = zero;
+
+//			Log.e(TAG, "Square: " + Button.join(square));
+			return square;
+		}
+/*
+		static String join(float[] s)
+		{
+			String glue = ",";
+		  int k=s.length;
+		  if (k==0)
+		    return null;
+		  StringBuilder out=new StringBuilder();
+		  out.append(s[0]);
+		  for (int x=1;x<k;++x)
+		    out.append(glue).append(s[x]);
+		  return out.toString();
+		}
+		*/
 	
 }
